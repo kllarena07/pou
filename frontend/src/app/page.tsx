@@ -25,7 +25,7 @@ export default function Home() {
   return (
     <>
       <GradientCanvas />
-      <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">
+      <div className="min-h-screen flex items-center justify-center text-white">
         <div className="p-4 w-full max-w-4xl bg-gray-800 rounded-lg shadow-lg">
           <table className="w-full table-auto text-left">
             <thead>
@@ -58,7 +58,7 @@ export default function Home() {
         <aside
           className={`fixed left-0 top-0 h-full w-40 bg-black text-white p-4 transform transition-transform duration-300 ${
             sidebarOpen ? "translate-x-0" : "-translate-x-full"
-          }`}
+          } sm:w-64`} // Sidebar adjusts width based on screen size
           style={{ fontFamily: '-apple-system, BlinkMacSystemFont, system-ui, sans-serif' }}
         >
           <h2 className="text-xl font-bold mb-4">Depobot</h2>
