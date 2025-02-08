@@ -1,0 +1,19 @@
+# Node.js dependencies
+node_modules/
+.pnp/
+.pnp.cjs
+.pnp.loader.mjs
+
+# Next.js build files
+.next/
+out/
+
+# Tailwind and PostCSS cache
+.tailwind/
+.postcss-cache/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log
