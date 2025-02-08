@@ -30,8 +30,10 @@ async def update(request: UpdateRequest):
         # 4. Make hello.sh executable and run it.
         container = client.containers.run(
             image="alpine:latest",
+            # command=["/bin/sh", "-c", 
+            #      f"apk add --no-cache git && git clone https://github.com/kllarena07/pou-test.git && git clone {request.repository} repo && cd repo && chmod +x hello.sh && ./hello.sh"],
             command=["/bin/sh", "-c", 
-                 f"apk add --no-cache git && git clone {request.repository} repo && cd repo && chmod +x hello.sh && ./hello.sh"],
+                 f"apk add --no-cache git && apk add --no-cache python3 && git clone https://github.com/kllarena07/pou-test.git scripts && cd scripts && chmod +x init.sh && source init.sh"],
             detach=True,
             stdout=True,
             stderr=True
