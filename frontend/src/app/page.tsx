@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from "react";
+import Image from "next/image";
 import GradientCanvas from "@/components/GradientCanvas";
 
 interface Item {
