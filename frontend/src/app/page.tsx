@@ -1,69 +1,56 @@
-'use client';  // This tells Next.js to treat the component as a client-side component
+'use client';
 
+import { useState } from "react";
 import Image from "next/image";
 import GradientCanvas from "@/components/GradientCanvas";
-import { useState } from "react";
 
 export default function Home() {
-  const [items, setItems] = useState([
-    {
-      text: "Example Repos #1",
-      completed: false,
-    },
-    {
-      text: "Example Repos #2",
-      completed: false,
-    },
-    {
-      text: "Example Repos #3",
-      completed: false,
-    },
-    {
-      text: "Example Repos #4",
-      completed: false,
-    },
-    {
-      text: "Example Repos #5",
-      completed: false,
-    },
-  ]);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
-  const toggleCompletion = (index: number) => {
-    const updatedItems = [...items];
-    updatedItems[index].completed = !updatedItems[index].completed;
-    setItems(updatedItems);
-  };
+  const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
   return (
     <>
       <GradientCanvas />
-      <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-        <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-          <div className="flex justify-center items-center w-full">
-            {/* Box container with rounded corners */}
-            <div className="border border-gray-300 rounded-lg p-6 w-full max-w-md shadow-lg bg-white">
-              <ul className="list-inside text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-                {items.map((item, index) => (
-                  <li
-                    key={index}
-                    className="mb-2 cursor-pointer"
-                    onClick={() => toggleCompletion(index)}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={item.completed}
-                      readOnly
-                      className="checkbox"
-                    />
-                    <span className={item.completed ? 'checked-text' : ''}>
-                      {item.text}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </main>
+      <div className="flex min-h-screen">
+        {/* Sidebar */}
+        <aside
+          className={`fixed left-0 top-0 h-full w-40 bg-black text-white p-4 transform transition-transform duration-300 ${
+            sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
+          style={{ fontFamily: '-apple-system, BlinkMacSystemFont, system-ui, sans-serif' }}
+        >
+          <h2 className="text-xl font-bold mb-4">Depobot</h2>
+          <ul>
+            {[
+              { text: "Profile", icon: "/user-round.svg" },
+              { text: "Dashboard", icon: "/layout-dashboard.svg" },
+              { text: "Settings", icon: "/settings.svg" }
+            ].map((item, index) => (
+              <li key={index} className="mb-2">
+                <a
+                  href="#"
+                  className="flex items-center p-2 rounded-lg transition duration-200 hover:bg-gray-800"
+                >
+                  <img src={item.icon} className="w-6 h-6 mr-2 invert" alt={`${item.text} Icon`} />
+                  {item.text}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </aside>
+
+        {/* Toggle Button (Bottom Left) */}
+        <button
+          onClick={toggleSidebar}
+          className="fixed bottom-4 left-4 bg-gray-800 text-white px-3 py-2 rounded-md shadow-lg transition-transform duration-300"
+        >
+          {sidebarOpen ? (
+            <img src="/arrow-left-from-line.svg" className="w-6 h-6 invert" alt="Close Sidebar" />
+          ) : (
+            <img src="/arrow-right-from-line.svg" className="w-6 h-6 invert" alt="Open Sidebar" />
+          )}
+        </button>
       </div>
     </>
   );
