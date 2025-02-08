@@ -1,6 +1,16 @@
+/* globals.css */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.checkbox {
+  margin-right: 8px;
+}
+
+.checked-text {
+  text-decoration: line-through;
+  color: gray;
+}
 
 :root {
   --background: #ffffff;
