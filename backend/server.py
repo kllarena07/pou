@@ -3,6 +3,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import docker
 from docker.errors import DockerException, ContainerError
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = FastAPI()
 
@@ -14,6 +18,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+env_vars = {
+    "GROQ_API_KEY": os.getenv("GROQ_API_KEY")
+}
 
 # Define request model
 class UpdateRequest(BaseModel):
@@ -30,6 +38,7 @@ async def update(request: UpdateRequest):
         # 4. Make hello.sh executable and run it.
         container = client.containers.run(
             image="alpine:latest",
+            environment=env_vars,
             # command=["/bin/sh", "-c", 
             #      f"apk add --no-cache git && git clone https://github.com/kllarena07/pou-test.git && git clone {request.repository} repo && cd repo && chmod +x hello.sh && ./hello.sh"],
             command=["/bin/sh", "-c", 
