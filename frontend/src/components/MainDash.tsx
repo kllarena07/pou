@@ -9,8 +9,9 @@ import { IoEnterOutline } from 'react-icons/io5';
 import { useState, useEffect } from 'react';
 import { AiOutlineEnter } from "react-icons/ai";
 import "rsuite/dist/rsuite.min.css";
-import { Repository } from "../models/Repository";
 import Image from "next/image";
+import { supabase } from '../app/lib/supabaseClient';
+import LiveCodeCard from './LiveCodeCard';
 
 
 interface Item {
@@ -62,16 +63,29 @@ const ProcessStateDetails: Record<ProcessState, ProcessStateConfig> = {
   }
 };
 
-const getStateColor = (state: ProcessState): string => {
+const getStateColor = (state: string): string => {
   switch (state) {
-    case ProcessState.Reading:
+    case 'READING':
       return 'text-red-500';
-    case ProcessState.Writing:
+    case 'WRITING':
       return 'text-orange-500';
-    case ProcessState.Pushing:
+    case 'LOADING':
       return 'text-yellow-500';
     default:
       return 'text-white';
+  }
+};
+
+const getStateEmoji = (state: string): any => {
+  switch (state) {
+    case 'READING':
+      return '🤓';
+    case 'WRITING':
+      return '✍️';
+    case 'LOADING':
+      return '🏃‍♂️';
+    default:
+      return '🤓';
   }
 };
 
@@ -197,60 +211,82 @@ impl ProgressiveBlur {
   }
 };
 
+// Actual code
+
+interface Update {
+  id: number;
+  created_at: string;
+  status: string;
+  message: string;
+  code: string | null;
+}
+
+
 export default function MainDash({ sidebarOpen, repositories, tasks }: MainDashProps) {
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [currentState, setCurrentState] = useState<ProcessState>(ProcessState.Reading);
   const [currentLog, setCurrentLog] = useState<LogsState>(LogsState.Log1);
   const [currentCodeExample, setCurrentCodeExample] = useState<CodeExample>(CodeExample.Swift);
-  
+
+  const [updates, setUpdates] = useState<Update[]>([
+    {
+      id: 1,
+      created_at: '2024-01-01',
+      status: 'READING',
+      message: 'Initializing repository scan...',
+      code: null
+    }
+  ]);
+  const [currentUpdate, setCurrentUpdate] = useState<Update>();
+
+
+
+  // useEffect(() => {
+  //   if (!isLoading) return;
+
+  //   let updateIndex = 0;
+  //   const updatesInterval = setInterval(() => {
+  //     if (updateIndex < updates.length) {
+  //       setCurrentUpdate(updates[updateIndex]);
+  //       updateIndex++;
+  //     } else {
+  //       clearInterval(updatesInterval);
+  //       setCurrentUpdate(updates[updates.length - 1]);
+  //     }
+  //   }, 2000);
+  // })
+
   useEffect(() => {
-    if (!isLoading) return;
+    // 1. Create a channel with a unique name or let Supabase handle it
+    const channel = supabase
+      .channel('table_db_changes') // any unique string
+      .on(
+        'postgres_changes',
+        {
+          event: '*',         // listen for INSERT, UPDATE, DELETE
+          schema: 'public',
+          table: 'repo-updates',
+        },
+        (payload) => {
 
-    const interval = setInterval(() => {
-      setCurrentState((prevState) => {
-        switch (prevState) {
-          case ProcessState.Reading:
-            return ProcessState.Writing;
-          case ProcessState.Writing:
-            return ProcessState.Pushing;
-          case ProcessState.Pushing:
-            return ProcessState.Reading;
-          default:
-            return ProcessState.Reading;
+
+          const newUpdate = payload.new as Update;
+          // console.log(newUpdate);
+          setUpdates((current) => [...(current || []), newUpdate]);
+
         }
-      });
-    }, 3000);
+      )
+      .subscribe();
 
-    return () => clearInterval(interval);
-  }, [isLoading]);
+    // 2. Cleanup: remove channel subscription on component unmount
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
-  useEffect(() => {
-    if (!isLoading) return;
+  // console.log(updates);
 
-    const interval = setInterval(() => {
-      setCurrentLog((prevLog) => {
-        switch (prevLog) {
-          case LogsState.Log1:
-            return LogsState.Log2;
-          case LogsState.Log2:
-            return LogsState.Log3;
-          case LogsState.Log3:
-            return LogsState.Log4;
-          case LogsState.Log4:
-            return LogsState.Log5;
-          case LogsState.Log5:
-            return LogsState.Log6;
-          case LogsState.Log6:
-            return LogsState.Log1;
-          default:
-            return LogsState.Log1;
-        }
-      });
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [isLoading]);
 
   const isGithubUrl = (url: string) => {
     try {
@@ -263,7 +299,28 @@ export default function MainDash({ sidebarOpen, repositories, tasks }: MainDashP
 
   const handleEnterClick = () => {
     setIsLoading(true);
-    // You can add your actual loading logic here
+    console.log(inputValue.split('/')[3])
+    fetch('http://127.0.0.1:5000/update', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+
+        repository: inputValue,
+        repository_owner: inputValue.split('/')[3],
+        repository_name: inputValue.split('/')[4].replace('.git', '') 
+      }),
+    })
+      .then(response => response.json())
+      .then(data => {
+        console.log('Success:', data);
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+      });
+    console.log();
+
   };
 
   return (
@@ -309,92 +366,106 @@ export default function MainDash({ sidebarOpen, repositories, tasks }: MainDashP
         <div className="max-w-4xl mx-auto">
           <div className="bg-[rgba(30,30,30,0.8)] backdrop-blur-[50px] rounded-[20px] p-16 mb-8 border border-gray-700/50">
             <div className="flex items-start gap-8">
-              {/* Left side - Emoji and State */}
-              <div className="flex flex-col items-center justify-center space-y-2 w-[100px] min-w-[230px]">
-                <span className="text-4xl">
-                  {ProcessStateDetails[currentState].emoji}
-                </span>
-                <div className="animate-blur-in">
-                  <span className="text-white relative z-10">
-                    {ProcessStateDetails[currentState].name}
-                  </span>
-                  <div 
-                    className={`absolute inset-7 -m-12 opacity-30 blur-2xl rounded-full ${getStateColor(currentState)}`}
-                    style={{
-                      background: `radial-gradient(ellipse, currentColor 10%, transparent 85%)`
-                    }}
-                  />
-                </div>
-                <div className="relative h-8 overflow-hidden">
-                  <p 
-                    key={currentLog} 
-                    className="text-gray-400 text-sm mt-2 animate-fade-in"
-                  >
-                    {currentLog}
-                  </p>
-                </div>
-              </div>
-
-              {/* Vertical Separator */}
-              <div className="w-px bg-gray-700/50 self-stretch"></div>
-
-              {/* Right side - Text Content */}
-              <div className="flex-1">
-                {/* File selector */}
-                <div className="flex gap-2 mb-4">
-                  <button
-                    onClick={() => setCurrentCodeExample(CodeExample.Swift)}
-                    className={`text-gray-400 text-sm px-3 py-1.5 rounded-[8px] border border-gray-500/10 transition-colors
-                      ${currentCodeExample === CodeExample.Swift 
-                        ? 'bg-[rgba(30,30,30,0.8)] text-white' 
-                        : 'bg-[rgba(30,30,30,0.4)] hover:bg-[rgba(30,30,30,0.6)]'
-                      }`}
-                  >
-                    {CodeExampleDetails[CodeExample.Swift].fileName}
-                  </button>
-                  <button
-                    onClick={() => setCurrentCodeExample(CodeExample.TypeScript)}
-                    className={`text-gray-400 text-sm px-3 py-1.5 rounded-[8px] border border-gray-500/10 transition-colors
-                      ${currentCodeExample === CodeExample.TypeScript 
-                        ? 'bg-[rgba(30,30,30,0.8)] text-white' 
-                        : 'bg-[rgba(30,30,30,0.4)] hover:bg-[rgba(30,30,30,0.6)]'
-                      }`}
-                  >
-                    {CodeExampleDetails[CodeExample.TypeScript].fileName}
-                  </button>
-                  <button
-                    onClick={() => setCurrentCodeExample(CodeExample.Python)}
-                    className={`text-gray-400 text-sm px-3 py-1.5 rounded-[8px] border border-gray-500/10 transition-colors
-                      ${currentCodeExample === CodeExample.Python 
-                        ? 'bg-[rgba(30,30,30,0.8)] text-white' 
-                        : 'bg-[rgba(30,30,30,0.4)] hover:bg-[rgba(30,30,30,0.6)]'
-                      }`}
-                  >
-                    {CodeExampleDetails[CodeExample.Python].fileName}
-                  </button>
-                  <button
-                    onClick={() => setCurrentCodeExample(CodeExample.Rust)}
-                    className={`text-gray-400 text-sm px-3 py-1.5 rounded-[8px] border border-gray-500/10 transition-colors
-                      ${currentCodeExample === CodeExample.Rust 
-                        ? 'bg-[rgba(30,30,30,0.8)] text-white' 
-                        : 'bg-[rgba(30,30,30,0.4)] hover:bg-[rgba(30,30,30,0.6)]'
-                      }`}
-                  >
-                    {CodeExampleDetails[CodeExample.Rust].fileName}
-                  </button>
-                </div>
-
-                {/* Code display */}
-                <div className="text-gray-400 text-sm mb-2 w-fit bg-[rgba(30,30,30,0.4)] backdrop-blur-[20px] rounded-[8px] px-3 py-1.5 border border-gray-500/10">
-                  {CodeExampleDetails[currentCodeExample].fileName}
-                </div>
-                <p className="text-gray-400 text-sm leading-relaxed bg-[rgba(30,30,30,0.4)] backdrop-blur-[20px] rounded-[12px] p-4">
-                  {CodeExampleDetails[currentCodeExample].code}
-                </p>
-              </div>
+            <LiveCodeCard
+              filename={updates[updates.length - 1].message.split(' ')[1].replace("...", "")}
+              language="javascript"
+              finalCode={updates[updates.length - 1].code || ""}
+              typingSpeed={2}
+              message={updates[updates.length - 1].message}
+            />
             </div>
           </div>
         </div>
+
+        // <div className="max-w-4xl mx-auto">
+        //   <div className="bg-[rgba(30,30,30,0.8)] backdrop-blur-[50px] rounded-[20px] p-16 mb-8 border border-gray-700/50">
+        //     <div className="flex items-start gap-8">
+
+        //       <div className="flex flex-col items-center justify-center space-y-2 w-[100px] min-w-[230px]">
+        //         <span className="text-4xl">
+        //           {getStateEmoji(updates[updates.length - 1].status)}
+        //         </span>
+        //         <div className="animate-blur-in">
+        //           <span className="text-white relative z-10">
+        //             {updates[updates.length - 1].message}
+        //           </span>
+        //           <div 
+        //             className={`absolute inset-7 -m-12 opacity-30 blur-2xl rounded-full ${getStateColor(updates[updates.length - 1].status)}`}
+        //             style={{
+        //               background: `radial-gradient(ellipse, currentColor 10%, transparent 85%)`
+        //             }}
+        //           />
+        //         </div>
+        //         <div className="relative h-8 overflow-hidden">
+        //           <p 
+        //             key={currentLog} 
+        //             className="text-gray-400 text-sm mt-2 animate-fade-in"
+        //           >
+        //             {currentLog}
+        //           </p>
+        //         </div>
+        //       </div>
+
+
+        //       <div className="w-px bg-gray-700/50 self-stretch"></div>
+
+
+        //       <div className="flex-1">
+
+        //         <div className="flex gap-2 mb-4">
+        //           <button
+        //             onClick={() => setCurrentCodeExample(CodeExample.Swift)}
+        //             className={`text-gray-400 text-sm px-3 py-1.5 rounded-[8px] border border-gray-500/10 transition-colors
+        //               ${currentCodeExample === CodeExample.Swift 
+        //                 ? 'bg-[rgba(30,30,30,0.8)] text-white' 
+        //                 : 'bg-[rgba(30,30,30,0.4)] hover:bg-[rgba(30,30,30,0.6)]'
+        //               }`}
+        //           >
+        //             {updates[updates.length - 1].message.split(' ')[1].replace("...", "")}
+        //           </button>
+        //           <button
+        //             onClick={() => setCurrentCodeExample(CodeExample.TypeScript)}
+        //             className={`text-gray-400 text-sm px-3 py-1.5 rounded-[8px] border border-gray-500/10 transition-colors
+        //               ${currentCodeExample === CodeExample.TypeScript 
+        //                 ? 'bg-[rgba(30,30,30,0.8)] text-white' 
+        //                 : 'bg-[rgba(30,30,30,0.4)] hover:bg-[rgba(30,30,30,0.6)]'
+        //               }`}
+        //           >
+        //             {CodeExampleDetails[CodeExample.TypeScript].fileName}
+        //           </button>
+        //           <button
+        //             onClick={() => setCurrentCodeExample(CodeExample.Python)}
+        //             className={`text-gray-400 text-sm px-3 py-1.5 rounded-[8px] border border-gray-500/10 transition-colors
+        //               ${currentCodeExample === CodeExample.Python 
+        //                 ? 'bg-[rgba(30,30,30,0.8)] text-white' 
+        //                 : 'bg-[rgba(30,30,30,0.4)] hover:bg-[rgba(30,30,30,0.6)]'
+        //               }`}
+        //           >
+        //             {CodeExampleDetails[CodeExample.Python].fileName}
+        //           </button>
+        //           <button
+        //             onClick={() => setCurrentCodeExample(CodeExample.Rust)}
+        //             className={`text-gray-400 text-sm px-3 py-1.5 rounded-[8px] border border-gray-500/10 transition-colors
+        //               ${currentCodeExample === CodeExample.Rust 
+        //                 ? 'bg-[rgba(30,30,30,0.8)] text-white' 
+        //                 : 'bg-[rgba(30,30,30,0.4)] hover:bg-[rgba(30,30,30,0.6)]'
+        //               }`}
+        //           >
+        //             {CodeExampleDetails[CodeExample.Rust].fileName}
+        //           </button>
+        //         </div>
+
+                  
+        //         <div className="text-gray-400 text-sm mb-2 w-fit bg-[rgba(30,30,30,0.4)] backdrop-blur-[20px] rounded-[8px] px-3 py-1.5 border border-gray-500/10">
+        //           {CodeExampleDetails[currentCodeExample].fileName}
+        //         </div>
+        //         <p className="text-gray-400 text-sm leading-relaxed bg-[rgba(30,30,30,0.4)] backdrop-blur-[20px] rounded-[12px] p-4">
+        //           {CodeExampleDetails[currentCodeExample].code}
+        //         </p>
+        //       </div>
+        //     </div>
+        //   </div>
+        // </div>
       )}
 
       {/* Repository Table Container */}
