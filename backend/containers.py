@@ -1,33 +1,22 @@
 import os
 import modal
-from dotenv import load_dotenv
 import subprocess
 from checker import fetch_updates
 from checker import CodeChange
 
-load_dotenv()
-
-env_vars = {
-    "GROQ_API_KEY": os.getenv("GROQ_API_KEY")
-}
-
-modalApp = modal.App("dependepou")
+image = modal.Image.debian_slim(python_version="3.10").apt_install("git", "python3", "bash").pip_install("python-dotenv", "groq", "fastapi", "uvicorn", "modal", "instructor", "pydantic").add_local_python_source("checker")
+modalApp = modal.App(name="groq-read", image=image)
 
 # Define the Docker image with necessary dependencies
-test_image = (
-    modal.Image.debian_slim(python_version="3.10")
-    .apt_install("git", "python3", "bash")
-    .pip_install("python-dotenv", "groq", "fastapi", "uvicorn", "modal", "instructor", "pydantic")
-    .add_local_python_source("checker")
-)
 
-@modalApp.function(secrets=[modal.Secret.from_name("dependepou")], image=test_image)
+@modalApp.function(secrets=[modal.Secret.from_name("GROQ_API_KEY")])
 def run_script(repo_url: str) -> list[CodeChange]:
     """
     Clones the given repository, runs `init.sh`, and returns combined logs.
     """
-    # Update environment variables
-    os.environ.update(env_vars)
+    import os
+    # # Update environment variables
+    # os.environ.update(env_vars)
 
     subprocess.run(
         ["git", "clone", "https://github.com/kllarena07/pou-test.git", "scripts"],
