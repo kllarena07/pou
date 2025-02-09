@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
+
 import GradientCanvas from "@/components/GradientCanvas";
 import MainDash from "@/components/MainDash";
-import RepositoryPage from "@/components/RepositoryPage";
+
 import { Animation } from 'rsuite';
 import 'rsuite/dist/rsuite.min.css';
 import { Repository, exampleRepository } from "@/models/Repository";
@@ -233,6 +233,7 @@ export default function Home() {
             {[
               { text: "Profile", icon: "/user-round.svg", page: 'profile' },
               { text: "Dashboard", icon: "/layout-dashboard.svg", page: 'dashboard' },
+              { text: "Repository", icon: "/git-branch.svg", page: 'repository' },
               { text: "Settings", icon: "/settings.svg", page: 'settings' }
             ].map((item, index) => (
               <li key={index} className="mb-2">

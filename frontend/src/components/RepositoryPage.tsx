@@ -1,7 +1,6 @@
 'use client';
 
-import { useState } from 'react';
-import { Animation } from 'rsuite';
+
 import 'rsuite/dist/rsuite.min.css';
 
 interface Item {
