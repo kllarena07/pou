@@ -4,6 +4,10 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import GradientCanvas from "@/components/GradientCanvas";
 import MainDash from "@/components/MainDash";
+import RepositoryPage from "@/components/RepositoryPage";
+import { Animation } from 'rsuite';
+import 'rsuite/dist/rsuite.min.css';
+import { Repository, exampleRepository } from "@/models/Repository";
 
 interface Item {
   id: string;
@@ -14,7 +18,7 @@ interface Item {
 }
 
 export default function Home() {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [criticalAlerts, setCriticalAlerts] = useState<Item[]>([]);
   const [tasks, setTasks] = useState<Item[]>([]);
@@ -23,6 +27,99 @@ export default function Home() {
     totalRepositories: 0,
     subscriptionRate: 0
   });
+  const [currentPage, setCurrentPage] = useState('dashboard');
+
+  // Add more diverse sample repositories data
+  const [repositories, setRepositories] = useState<Repository[]>([
+    exampleRepository,
+    {
+      ...exampleRepository,
+      id: '2',
+      name: 'Next.js Project',
+      description: 'Company website built with Next.js',
+      lastUpdated: '2024-03-21',
+      status: 'inactive',
+      alerts: { critical: 4, moderate: 3, low: 2 },
+      testCoverage: 68,
+      stars: 156,
+      forks: 23
+    },
+    {
+      ...exampleRepository,
+      id: '3',
+      name: 'TypeScript Utils',
+      description: 'Common TypeScript utility functions',
+      lastUpdated: '2024-03-19',
+      status: 'active',
+      alerts: { critical: 0, moderate: 1, low: 5 },
+      testCoverage: 98,
+      stars: 892,
+      forks: 124
+    },
+    {
+      ...exampleRepository,
+      id: '4',
+      name: 'Legacy API Service',
+      description: 'Deprecated API service pending migration',
+      lastUpdated: '2023-12-15',
+      status: 'archived',
+      alerts: { critical: 12, moderate: 8, low: 15 },
+      testCoverage: 45,
+      stars: 12,
+      forks: 3
+    },
+    {
+      ...exampleRepository,
+      id: '5',
+      name: 'Authentication Module',
+      description: 'Core authentication and authorization service',
+      lastUpdated: '2024-03-22',
+      status: 'inactive',
+      alerts: { critical: 7, moderate: 4, low: 2 },
+      testCoverage: 72,
+      language: 'Python',
+      stars: 234,
+      forks: 45
+    },
+    {
+      ...exampleRepository,
+      id: '6',
+      name: 'Mobile App',
+      description: 'React Native mobile application',
+      lastUpdated: '2024-03-18',
+      status: 'active',
+      alerts: { critical: 2, moderate: 5, low: 8 },
+      testCoverage: 85,
+      language: 'JavaScript',
+      stars: 445,
+      forks: 67
+    },
+    {
+      ...exampleRepository,
+      id: '7',
+      name: 'Data Pipeline',
+      description: 'ETL pipeline for analytics',
+      lastUpdated: '2024-02-28',
+      status: 'inactive',
+      alerts: { critical: 5, moderate: 9, low: 3 },
+      testCoverage: 63,
+      language: 'Python',
+      stars: 178,
+      forks: 34
+    },
+    {
+      ...exampleRepository,
+      id: '8',
+      name: 'UI Component Library',
+      description: 'Shared React component library',
+      lastUpdated: '2024-03-15',
+      status: 'active',
+      alerts: { critical: 1, moderate: 3, low: 7 },
+      testCoverage: 89,
+      stars: 567,
+      forks: 89
+    }
+  ]);
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
@@ -92,6 +189,22 @@ export default function Home() {
     gradientColor3: '#000000', // Black
   };
 
+  const renderContent = () => {
+    switch (currentPage) {
+      case 'dashboard':
+        return (
+          <MainDash 
+            sidebarOpen={sidebarOpen}
+            repositories={repositories}
+            tasks={tasks}
+          />
+        );
+      
+      default:
+        return null;
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -118,28 +231,33 @@ export default function Home() {
           <h2 className="text-xl font-bold mb-4">Depobot</h2>
           <ul>
             {[
-              { text: "Profile", icon: "/user-round.svg" },
-              { text: "Dashboard", icon: "/layout-dashboard.svg" },
-              { text: "Settings", icon: "/settings.svg" }
+              { text: "Profile", icon: "/user-round.svg", page: 'profile' },
+              { text: "Dashboard", icon: "/layout-dashboard.svg", page: 'dashboard' },
+              { text: "Settings", icon: "/settings.svg", page: 'settings' }
             ].map((item, index) => (
               <li key={index} className="mb-2">
-                <a
-                  href="#"
-                  className="flex items-center p-2 rounded-lg transition duration-200 hover:bg-gray-800"
+                <button
+                  onClick={() => setCurrentPage(item.page)}
+                  className={`flex items-center p-2 rounded-lg transition duration-200 hover:bg-gray-800 w-full ${
+                    currentPage === item.page ? 'bg-gray-800' : ''
+                  }`}
                 >
                   <img src={item.icon} className="w-6 h-6 mr-2 invert" alt={`${item.text} Icon`} />
                   {item.text}
-                </a>
+                </button>
               </li>
             ))}
           </ul>
         </aside>
 
-        <MainDash 
-          sidebarOpen={sidebarOpen}
-          criticalAlerts={criticalAlerts}
-          tasks={tasks}
-        />
+        {/* Single Animation.Slide wrapper */}
+        <Animation.Slide 
+          in={true} 
+          placement={currentPage === 'dashboard' ? 'left' : 'right'} 
+          unmountOnExit
+        >
+          {renderContent()}
+        </Animation.Slide>
 
         {/* Toggle Button */}
         <button
