@@ -69,7 +69,7 @@ def analyze_file_with_llm(file_path):
 
         data = {
             "status": "READING",
-            "message": "Updating " + file_path.split("/")[-1] + "...",
+            "message": "Reading " + file_path.split("/")[-1] + "...",
             "code": chat_completion.code_content
         }
 

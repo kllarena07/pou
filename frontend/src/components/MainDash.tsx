@@ -12,6 +12,7 @@ import "rsuite/dist/rsuite.min.css";
 import Image from "next/image";
 import { supabase } from '../app/lib/supabaseClient';
 import LiveCodeCard from './LiveCodeCard';
+import MultiFileCodeCard from './MultiFileCodeCard';
 
 
 interface Item {
@@ -213,7 +214,7 @@ impl ProgressiveBlur {
 
 // Actual code
 
-interface Update {
+export interface Update {
   id: number;
   created_at: string;
   status: string;
@@ -228,6 +229,7 @@ export default function MainDash({ sidebarOpen, repositories, tasks }: MainDashP
   const [currentState, setCurrentState] = useState<ProcessState>(ProcessState.Reading);
   const [currentLog, setCurrentLog] = useState<LogsState>(LogsState.Log1);
   const [currentCodeExample, setCurrentCodeExample] = useState<CodeExample>(CodeExample.Swift);
+  const [finished, setFinished] = useState(false);
 
   const [updates, setUpdates] = useState<Update[]>([
     {
@@ -239,6 +241,8 @@ export default function MainDash({ sidebarOpen, repositories, tasks }: MainDashP
     }
   ]);
   const [currentUpdate, setCurrentUpdate] = useState<Update>();
+
+  console.log(updates);
 
 
 
@@ -299,28 +303,31 @@ export default function MainDash({ sidebarOpen, repositories, tasks }: MainDashP
 
   const handleEnterClick = () => {
     setIsLoading(true);
-    console.log(inputValue.split('/')[3])
+    console.log(inputValue.split('/')[3]);
     fetch('http://127.0.0.1:5000/update', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-
         repository: inputValue,
         repository_owner: inputValue.split('/')[3],
-        repository_name: inputValue.split('/')[4].replace('.git', '') 
+        repository_name: inputValue.split('/')[4].replace('.git', ''),
       }),
     })
       .then(response => response.json())
       .then(data => {
         console.log('Success:', data);
+        
+        
+        // Open the specified URL in a new tab
+        // window.open('https://github.com/nebudev14/outdated-website', '_blank');
+        setFinished(true);
+        // setIsLoading(false);
       })
       .catch((error) => {
         console.error('Error:', error);
       });
-    console.log();
-
   };
 
   return (
@@ -329,20 +336,21 @@ export default function MainDash({ sidebarOpen, repositories, tasks }: MainDashP
       
       {/* Search Bar */}
       <div className={`relative max-w-xl mx-auto transition-all duration-300 ${isGithubUrl(inputValue) ? 'h-20' : 'h-12'} ${isLoading ? 'mb-0' : 'mb-10'}`}>
-        
-        <input
-          type="text"
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
+        {!finished && (
+          <input
+            type="text"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === 'Enter' && isGithubUrl(inputValue)) {
               handleEnterClick();
             }
           }}
           disabled={isLoading}
-          className="w-full bg-[rgba(30,30,30,0.8)] backdrop-blur-[50px] text-white rounded-full py-5 pl-12 pr-12 border border-gray-700/50 focus:outline-none focus:border-gray-600 placeholder-gray-400 disabled:opacity-75 disabled:cursor-not-allowed"
+          className="w-full bg-[rgba(30,30,30,0.8)] backdrop-blur-[50px] text-white rounded-full py-5 pl-12 pr-12 border border-gray-700/50 focus:outline-none focus:border-gray-600 placeholder-gray-400 disabled:opacity-75 disabled:cursor-not-allowed shadow-[0_0_15px_rgba(255,255,255,0.1)] focus:shadow-[0_0_20px_rgba(255,255,255,0.2)] transition-shadow duration-300"
           placeholder="Insert a Github repository URL"
         />
+        )}
         {isGithubUrl(inputValue) && !isLoading && (
           <>
             <div className="absolute inset-y-0 right-5 top-5 flex items-start pointer-events-none">
@@ -361,111 +369,67 @@ export default function MainDash({ sidebarOpen, repositories, tasks }: MainDashP
         )}
       </div>
 
-      {/* Loading Component */}
-      {isLoading && (
+      {/* Loading Component */} 
+      {finished && (
+        <div className="max-w-5xl mx-auto">
+          <div className="bg-[rgba(30,30,30,0.8)] backdrop-blur-[50px] rounded-[20px] p-16 mb-8 border border-gray-700/50">
+            <MultiFileCodeCard
+              files={updates.filter((update) => update.status === 'WRITING').map((update) => ({
+                old: (() => {
+                  const oldCode = updates.find((u) => u.message.split(' ')[1].replace("...", "") === update.message.split(' ')[1].replace("...", "") && u.status === 'READING');
+                  return {
+                    name: update.message.split(' ')[1].replace("...", ""),
+                    content: oldCode?.code || "",
+                    description: update.message,
+                  };
+                })(),
+                new: {
+                  name: update.message.split(' ')[1].replace("...", ""),
+                  content: update.code || "",
+                  description: update.message,
+                }
+              }))}
+              link={inputValue.replace(".git", "") + "/pulls"}
+            />
+          </div>
+        </div>
+      )}
+
+      {isLoading && !finished && (
         <div className="max-w-4xl mx-auto">
           <div className="bg-[rgba(30,30,30,0.8)] backdrop-blur-[50px] rounded-[20px] p-16 mb-8 border border-gray-700/50">
-            <div className="flex items-start gap-8">
-            <LiveCodeCard
-              filename={updates[updates.length - 1].message.split(' ')[1].replace("...", "")}
-              language="javascript"
-              finalCode={updates[updates.length - 1].code || ""}
-              typingSpeed={2}
-              message={updates[updates.length - 1].message}
-            />
+            {/* Container for Emoji and Status Updates on Top */}
+            <div className="flex flex-col items-center justify-center space-y-4">
+              {/* Emoji and Status Updates */}
+              <div className="flex flex-col items-center">
+                <span className="text-4xl">
+                  {getStateEmoji(updates[updates.length - 1].status)}
+                </span>
+                <div className="animate-blur-in">
+                  
+                  <div 
+                    className={`absolute inset-7 -m-12 opacity-30 blur-2xl rounded-full ${getStateColor(updates[updates.length - 1].status)}`}
+                    style={{
+                      background: `radial-gradient(ellipse, currentColor 0%, transparent 65%)`
+                    }}
+                  />
+                </div>
+                <div className="relative h-8 overflow-hidden">
+                  
+                </div>
+              </div>
+
+              {/* Live Changes */}
+              <LiveCodeCard
+                filename={updates[updates.length - 1].message.split(' ')[1].replace("...", "")}
+                language="javascript"
+                finalCode={updates[updates.length - 1].code || ""}
+                typingSpeed={2}
+                message={updates[updates.length - 1].message}
+              />
             </div>
           </div>
         </div>
-
-        // <div className="max-w-4xl mx-auto">
-        //   <div className="bg-[rgba(30,30,30,0.8)] backdrop-blur-[50px] rounded-[20px] p-16 mb-8 border border-gray-700/50">
-        //     <div className="flex items-start gap-8">
-
-        //       <div className="flex flex-col items-center justify-center space-y-2 w-[100px] min-w-[230px]">
-        //         <span className="text-4xl">
-        //           {getStateEmoji(updates[updates.length - 1].status)}
-        //         </span>
-        //         <div className="animate-blur-in">
-        //           <span className="text-white relative z-10">
-        //             {updates[updates.length - 1].message}
-        //           </span>
-        //           <div 
-        //             className={`absolute inset-7 -m-12 opacity-30 blur-2xl rounded-full ${getStateColor(updates[updates.length - 1].status)}`}
-        //             style={{
-        //               background: `radial-gradient(ellipse, currentColor 10%, transparent 85%)`
-        //             }}
-        //           />
-        //         </div>
-        //         <div className="relative h-8 overflow-hidden">
-        //           <p 
-        //             key={currentLog} 
-        //             className="text-gray-400 text-sm mt-2 animate-fade-in"
-        //           >
-        //             {currentLog}
-        //           </p>
-        //         </div>
-        //       </div>
-
-
-        //       <div className="w-px bg-gray-700/50 self-stretch"></div>
-
-
-        //       <div className="flex-1">
-
-        //         <div className="flex gap-2 mb-4">
-        //           <button
-        //             onClick={() => setCurrentCodeExample(CodeExample.Swift)}
-        //             className={`text-gray-400 text-sm px-3 py-1.5 rounded-[8px] border border-gray-500/10 transition-colors
-        //               ${currentCodeExample === CodeExample.Swift 
-        //                 ? 'bg-[rgba(30,30,30,0.8)] text-white' 
-        //                 : 'bg-[rgba(30,30,30,0.4)] hover:bg-[rgba(30,30,30,0.6)]'
-        //               }`}
-        //           >
-        //             {updates[updates.length - 1].message.split(' ')[1].replace("...", "")}
-        //           </button>
-        //           <button
-        //             onClick={() => setCurrentCodeExample(CodeExample.TypeScript)}
-        //             className={`text-gray-400 text-sm px-3 py-1.5 rounded-[8px] border border-gray-500/10 transition-colors
-        //               ${currentCodeExample === CodeExample.TypeScript 
-        //                 ? 'bg-[rgba(30,30,30,0.8)] text-white' 
-        //                 : 'bg-[rgba(30,30,30,0.4)] hover:bg-[rgba(30,30,30,0.6)]'
-        //               }`}
-        //           >
-        //             {CodeExampleDetails[CodeExample.TypeScript].fileName}
-        //           </button>
-        //           <button
-        //             onClick={() => setCurrentCodeExample(CodeExample.Python)}
-        //             className={`text-gray-400 text-sm px-3 py-1.5 rounded-[8px] border border-gray-500/10 transition-colors
-        //               ${currentCodeExample === CodeExample.Python 
-        //                 ? 'bg-[rgba(30,30,30,0.8)] text-white' 
-        //                 : 'bg-[rgba(30,30,30,0.4)] hover:bg-[rgba(30,30,30,0.6)]'
-        //               }`}
-        //           >
-        //             {CodeExampleDetails[CodeExample.Python].fileName}
-        //           </button>
-        //           <button
-        //             onClick={() => setCurrentCodeExample(CodeExample.Rust)}
-        //             className={`text-gray-400 text-sm px-3 py-1.5 rounded-[8px] border border-gray-500/10 transition-colors
-        //               ${currentCodeExample === CodeExample.Rust 
-        //                 ? 'bg-[rgba(30,30,30,0.8)] text-white' 
-        //                 : 'bg-[rgba(30,30,30,0.4)] hover:bg-[rgba(30,30,30,0.6)]'
-        //               }`}
-        //           >
-        //             {CodeExampleDetails[CodeExample.Rust].fileName}
-        //           </button>
-        //         </div>
-
-                  
-        //         <div className="text-gray-400 text-sm mb-2 w-fit bg-[rgba(30,30,30,0.4)] backdrop-blur-[20px] rounded-[8px] px-3 py-1.5 border border-gray-500/10">
-        //           {CodeExampleDetails[currentCodeExample].fileName}
-        //         </div>
-        //         <p className="text-gray-400 text-sm leading-relaxed bg-[rgba(30,30,30,0.4)] backdrop-blur-[20px] rounded-[12px] p-4">
-        //           {CodeExampleDetails[currentCodeExample].code}
-        //         </p>
-        //       </div>
-        //     </div>
-        //   </div>
-        // </div>
       )}
 
       {/* Repository Table Container */}
@@ -481,7 +445,7 @@ export default function MainDash({ sidebarOpen, repositories, tasks }: MainDashP
         <div className="w-full overflow-x-auto">
           <div className="flex justify-between items-center mb-4">
             <div className="flex space-x-4">
-              <h2 className="text-xl text-white">Repositories</h2>
+              <h2 className="text-xl text-white">Linked Repositories</h2>
             </div>
           </div>
 
@@ -538,7 +502,7 @@ export default function MainDash({ sidebarOpen, repositories, tasks }: MainDashP
         <div className="w-full overflow-x-auto">
           <div className="flex justify-between items-center mb-4">
             <div className="flex space-x-4">
-              <h2 className="text-xl text-white">Outdated Repositories</h2>
+              <h2 className="text-xl text-white">Review Needed</h2>
             </div>
           </div>
 
@@ -581,7 +545,7 @@ export default function MainDash({ sidebarOpen, repositories, tasks }: MainDashP
         </div>
       </div>
 
-      {/* Stats Cards */}
+      {/* Stats Cards 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-[rgba(30,30,30,0.8)] backdrop-blur-[50px] rounded-[20px] p-6 border border-gray-700/50">
           <div className="text-6xl font-bold text-white mb-2">13</div>
@@ -616,6 +580,7 @@ export default function MainDash({ sidebarOpen, repositories, tasks }: MainDashP
           <div className="text-gray-400">Of readers aren&apos;t subscribed</div>
         </div>
       </div>
+      */}
     </div>
   );
 }

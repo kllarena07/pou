@@ -37,16 +37,22 @@ export default function LiveCodeCard({ filename, language, finalCode, typingSpee
   }, [currentIndex, finalCode, typingSpeed])
 
   return (
-    <Card className="w-full max-w-2xl">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">
-          <Badge variant="outline" className="mr-2">
+    <Card className="w-full max-w-2xl bg-[rgba(20,20,20,0.05)] backdrop-blur-[30px] rounded-[20px] mb-8 mt-5 border border-gray-700/50 p-0 ">
+      <CardHeader className="flex justify-between p-4 border-b border-gray-300/10">
+        <CardTitle className="text-sm font-medium text-white mb-3">
+          <Badge className="mr-7">
             {filename}
           </Badge>
           {message}
         </CardTitle>
+        <div className="w-full h-2 bg-gray-700 rounded mt-2 ">
+          <div
+            className="h-full bg-blue-500 rounded"
+            style={{ width: `${(currentIndex / finalCode.length) * 100}%` }}
+          />
+        </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-4">
         <div className="rounded-md overflow-hidden">
           <SyntaxHighlighter
             language={language}
@@ -56,6 +62,7 @@ export default function LiveCodeCard({ filename, language, finalCode, typingSpee
               padding: "1rem",
               fontSize: "0.875rem",
               lineHeight: "1.25rem",
+              backgroundColor: "rgba(0, 0, 0, 0.9)",
             }}
           >
             {currentCode}
