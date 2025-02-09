@@ -6,8 +6,8 @@ from docker.errors import DockerException, ContainerError
 import os
 from dotenv import load_dotenv
 import subprocess
-import modal
 from containers import modalApp, run_script
+from modal_write import writeApp, process_file
 
 load_dotenv()
 
@@ -31,14 +31,23 @@ class UpdateRequest(BaseModel):
 async def update(request: UpdateRequest):
     try:
         with modalApp.run():
-            output = run_script.remote(request.repository)
-            print(output)
-        
+            job_list = run_script.remote(request.repository)
+
+        with writeApp.run():
+            refactored_jobs = []
+            for job in job_list:
+                output = process_file.remote(job)  # spin up a container for every file
+                refactored_jobs.append({
+                    "path": output["file_path"],
+                    "new_content": output["refactored_code"],
+                    "comments": output["refactored_code_comments"]
+                })
+
         return {
             "status": "success",
             "message": "Repository updated and script executed successfully",
             "repository": request.repository,
-            "output": output,
+            "output": refactored_jobs,
         }
     except ContainerError as ce:
         # ContainerError contains stderr output which we decode.
