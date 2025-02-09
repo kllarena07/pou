@@ -31,12 +31,14 @@ class UpdateRequest(BaseModel):
 async def update(request: UpdateRequest):
     try:
         with modalApp.run():
-            output_str = run_script.remote(request.repository)
+            output = run_script.remote(request.repository)
+            print(output)
+        
         return {
             "status": "success",
             "message": "Repository updated and script executed successfully",
             "repository": request.repository,
-            "output": output_str,
+            "output": output,
         }
     except ContainerError as ce:
         # ContainerError contains stderr output which we decode.
