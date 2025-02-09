@@ -1,13 +1,14 @@
 'use client';
 
 import { useState, useEffect } from "react";
+import Image from 'next/image';
 
 import GradientCanvas from "@/components/GradientCanvas";
 import MainDash from "@/components/MainDash";
 
 import { Animation } from 'rsuite';
 import 'rsuite/dist/rsuite.min.css';
-import { Repository, exampleRepository } from "@/models/Repository";
+import { exampleRepository } from "@/models/Repository";
 
 interface Item {
   id: string;
@@ -21,14 +22,8 @@ export default function Home() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [tasks, setTasks] = useState<Item[]>([]);
-  const [stats, setStats] = useState({
-    activeUsers: 0,
-    totalRepositories: 0,
-    subscriptionRate: 0
-  });
   const [currentPage, setCurrentPage] = useState('dashboard');
 
-  // Add more diverse sample repositories data
   const repositories = [
     exampleRepository,
     {
@@ -37,7 +32,7 @@ export default function Home() {
       name: 'Next.js Project',
       description: 'Company website built with Next.js',
       lastUpdated: '2024-03-21',
-      status: 'inactive',
+      status: 'inactive' as const,
       alerts: { critical: 4, moderate: 3, low: 2 },
       testCoverage: 68,
       stars: 156,
@@ -49,7 +44,7 @@ export default function Home() {
       name: 'TypeScript Utils',
       description: 'Common TypeScript utility functions',
       lastUpdated: '2024-03-19',
-      status: 'active',
+      status: 'active' as const,
       alerts: { critical: 0, moderate: 1, low: 5 },
       testCoverage: 98,
       stars: 892,
@@ -61,7 +56,7 @@ export default function Home() {
       name: 'Legacy API Service',
       description: 'Deprecated API service pending migration',
       lastUpdated: '2023-12-15',
-      status: 'archived',
+      status: 'archived' as const,
       alerts: { critical: 12, moderate: 8, low: 15 },
       testCoverage: 45,
       stars: 12,
@@ -73,7 +68,7 @@ export default function Home() {
       name: 'Authentication Module',
       description: 'Core authentication and authorization service',
       lastUpdated: '2024-03-22',
-      status: 'inactive',
+      status: 'inactive' as const,
       alerts: { critical: 7, moderate: 4, low: 2 },
       testCoverage: 72,
       language: 'Python',
@@ -86,7 +81,7 @@ export default function Home() {
       name: 'Mobile App',
       description: 'React Native mobile application',
       lastUpdated: '2024-03-18',
-      status: 'active',
+      status: 'active' as const,
       alerts: { critical: 2, moderate: 5, low: 8 },
       testCoverage: 85,
       language: 'JavaScript',
@@ -99,7 +94,7 @@ export default function Home() {
       name: 'Data Pipeline',
       description: 'ETL pipeline for analytics',
       lastUpdated: '2024-02-28',
-      status: 'inactive',
+      status: 'inactive' as const,
       alerts: { critical: 5, moderate: 9, low: 3 },
       testCoverage: 63,
       language: 'Python',
@@ -112,7 +107,7 @@ export default function Home() {
       name: 'UI Component Library',
       description: 'Shared React component library',
       lastUpdated: '2024-03-15',
-      status: 'active',
+      status: 'active' as const,
       alerts: { critical: 1, moderate: 3, low: 7 },
       testCoverage: 89,
       stars: 567,
@@ -126,24 +121,12 @@ export default function Home() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // In a real application, these would be API calls
-        // Simulating API delay
         await new Promise(resolve => setTimeout(resolve, 1000));
-
-        // Simulate tasks data
         setTasks([
           { id: '4', text: 'Update Dependencies', completed: false, date: new Date().toISOString().split('T')[0], status: 'In Progress' },
           { id: '5', text: 'Code Review', completed: false, date: new Date().toISOString().split('T')[0], status: 'In Progress' },
           { id: '6', text: 'Deploy Updates', completed: false, date: new Date().toISOString().split('T')[0], status: 'Pending' },
         ]);
-
-        // Simulate stats data
-        setStats({
-          activeUsers: Math.floor(Math.random() * 100),
-          totalRepositories: Math.floor(Math.random() * 50),
-          subscriptionRate: Math.floor(Math.random() * 100)
-        });
-
         setLoading(false);
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -153,10 +136,6 @@ export default function Home() {
 
     fetchData();
   }, []);
-
-  
-
-  
 
   // Add a simple theme object
   const theme = {
@@ -219,7 +198,13 @@ export default function Home() {
                     currentPage === item.page ? 'bg-gray-800' : ''
                   }`}
                 >
-                  <img src={item.icon} className="w-6 h-6 mr-2 invert" alt={`${item.text} Icon`} />
+                  <Image 
+                    src={item.icon} 
+                    width={24} 
+                    height={24} 
+                    className="mr-2 invert" 
+                    alt={`${item.text} Icon`}
+                  />
                   {item.text}
                 </button>
               </li>
@@ -242,9 +227,21 @@ export default function Home() {
           className="fixed bottom-4 left-4 bg-gray-800 text-white px-3 py-2 rounded-md shadow-lg transition-transform duration-300"
         >
           {sidebarOpen ? (
-            <img src="/arrow-left-from-line.svg" className="w-6 h-6 invert" alt="Close Sidebar" />
+            <Image 
+              src="/arrow-left-from-line.svg" 
+              width={24} 
+              height={24} 
+              className="invert" 
+              alt="Close Sidebar" 
+            />
           ) : (
-            <img src="/arrow-right-from-line.svg" className="w-6 h-6 invert" alt="Open Sidebar" />
+            <Image 
+              src="/arrow-right-from-line.svg" 
+              width={24} 
+              height={24} 
+              className="invert" 
+              alt="Open Sidebar" 
+            />
           )}
         </button>
       </div>

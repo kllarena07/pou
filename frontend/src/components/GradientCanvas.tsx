@@ -13,7 +13,8 @@ export default function GradientCanvas({ gradientColor1, gradientColor2, gradien
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    const gradient = new Gradient();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const gradient: any = new Gradient();
     gradient.initGradient('#gradient-canvas');
   }, []);
 

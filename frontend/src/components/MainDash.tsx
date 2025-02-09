@@ -136,7 +136,7 @@ export default function MainDash({ sidebarOpen, repositories, tasks }: MainDashP
         </div>
         <div className="bg-[rgba(30,30,30,0.8)] backdrop-blur-[50px] rounded-[20px] p-6 border border-gray-700/50">
           <div className="text-6xl font-bold text-white mb-2">56%</div>
-          <div className="text-gray-400">Of readers aren't subscribed</div>
+          <div className="text-gray-400">Of readers aren&apos;t subscribed</div>
         </div>
       </div>
     </div>
