@@ -16,6 +16,7 @@ class CodeChange(BaseModel):
     path: str
     code_content: str
     reason: str
+    add: bool
 
 def get_all_files_recursively(root_directory):
     """
@@ -46,6 +47,7 @@ def analyze_file_with_llm(file_path):
         '  "path": "relative/file/path",\n'
         '  "code_content": "The entire content of the file, before any changes are made. This should be a complete file, not just a partial updated code segment."\n'
         '  "reason": "A short explanation of why the code is out of date."\n'
+        '  "add": "Whether the code should be updated and has changes."\n'
         "}\n\n"
         f"{file_content}"
     )
@@ -92,7 +94,7 @@ def fetch_updates(directory):
         # Query LLM for this file
 
         response = analyze_file_with_llm(filepath)
-        if response is None:
+        if response is None or response.add == False:
             continue  # Skip if there was an error
         print(filepath)
         response.path = filepath
@@ -104,7 +106,7 @@ def fetch_updates(directory):
 
 def main():
     # print(fetch_updates("website-test")[0])
-    fetch_updates("website-test")
+    print(fetch_updates("website-test"))
     # parser = argparse.ArgumentParser(description="Analyze code files for outdated syntax.")
     # parser.add_argument("directory", type=str, help="Directory to analyze")
 
