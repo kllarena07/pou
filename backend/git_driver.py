@@ -6,11 +6,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-repo = Repo("./staging")
-origin = repo.remotes.origin
-load_dotenv()
-
-
 def load_repository(repo_path="./staging"):
   repo = Repo(repo_path)
   origin = repo.remotes.origin
@@ -19,7 +14,7 @@ def load_repository(repo_path="./staging"):
   return repo, origin, origin_url
 
 
-def create_and_push_branch(repo, origin, files_to_stage, commit_message):
+def create_and_push_branch(repo, origin, files_to_stage):
   new_branch_name = uuid.uuid4().hex
   new_branch = repo.create_head(new_branch_name)
   new_branch.checkout()
@@ -29,8 +24,7 @@ def create_and_push_branch(repo, origin, files_to_stage, commit_message):
   repo.index.add(files_to_stage)
   print("Staged files:", files_to_stage)
 
-  repo.index.commit(commit_message)
-  print("Committed changes with message:", commit_message)
+  repo.index.commit("Automated commit message.")
 
   origin.push(new_branch)
   print("Pushed branch to remote.")
