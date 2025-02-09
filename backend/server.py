@@ -70,7 +70,7 @@ async def update(request: UpdateRequest):
 
         new_branch_name = create_and_push_branch(repo, origin, files_changed)
         
-        create_pull_request(new_branch_name, "nebudev14", "outdated-website", "main")
+        create_pull_request(new_branch_name, request.repository_owner, request.repository_name, "main")
 
         return {
             "status": "success",
