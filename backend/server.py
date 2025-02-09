@@ -31,7 +31,7 @@ class UpdateRequest(BaseModel):
 async def update(request: UpdateRequest):
     try:
         with modalApp.run():
-            output_str = run_script.remote()
+            output_str = run_script.remote(request.repository)
         return {
             "status": "success",
             "message": "Repository updated and script executed successfully",
