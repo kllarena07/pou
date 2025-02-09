@@ -28,7 +28,7 @@ def process_file(job):
       "If it is out of date, specify what changes need to be made in the following JSON format:\n\n"
       "{\n"
       '  "refactored_code": "A rewrite of the file that is more up to date, using the native language (i.e. if the file is a NextJS file, rewrite the NextJS file using Javascript/Typescript with the updated API changes)". The file should be a complete file, not just a partial updated code segment,\n'
-      '  "refactored-code_comments": "Comments that accomodate your changes."\n'
+      '  "refactored_code_comments": "Comments and explanations for your code changes. Be as descriptive, informative, technical as possible."\n'
       "}\n\n"
       f"{file_content}"
   )
@@ -40,7 +40,10 @@ def process_file(job):
           response_model=JobReport,
       )
 
-      return job_report.model_dump_json(indent=2)
+      return {
+          "file_path": file_path,
+          **job_report.model_dump()
+      }
   except (ValidationError, json.JSONDecodeError) as parse_error:
       print(f"Error parsing LLM response for {file_path}: {parse_error}")
       return None
@@ -61,11 +64,18 @@ def main():
       "file_path": file_path,
       "file_content": file_obj.read()
     })
- 
+
+  refactored_jobs = []
+
   for job in job_list:
-    output = json.loads(process_file.remote(job))  # spin up a container for every file
-    print(output["refactored_code"])
-    print(output["refactored_code_comments"])
+    output = process_file.remote(job)  # spin up a container for every file
+    refactored_jobs.append({
+      "path": output["file_path"],
+      "new_content": output["refactored_code"],
+      "comments": output["refactored_code_comments"]
+    })
+  
+  return refactored_jobs
 
 # change_log has the shape
 # [
@@ -84,8 +94,3 @@ def main():
 #   },
 #   ...
 # ]
-
-# def analyze_file_with_llm(file_path):
-#     with open(file_path, 'r', encoding="utf-8", errors="ignore") as f:
-#         file_content = f.read()
-#         # print(file_content)
