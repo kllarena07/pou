@@ -8,7 +8,7 @@ import MainDash from "@/components/MainDash";
 
 import { Animation } from "rsuite";
 import "rsuite/dist/rsuite.min.css";
-// import { exampleRepository } from "@/models/Repository";
+import { exampleRepository } from "@/models/Repository";
 
 interface Item {
   id: string;
@@ -24,98 +24,96 @@ export default function Home() {
   const [tasks, setTasks] = useState<Item[]>([]);
   const [currentPage, setCurrentPage] = useState("dashboard");
 
-  const repositories = [];
-
-  // const repositories = [
-  //   exampleRepository,
-  //   {
-  //     ...exampleRepository,
-  //     id: '2',
-  //     name: 'Next.js Project',
-  //     description: 'Company website built with Next.js',
-  //     lastUpdated: '2024-03-21',
-  //     status: 'inactive' as const,
-  //     alerts: { critical: 4, moderate: 3, low: 2 },
-  //     testCoverage: 68,
-  //     stars: 156,
-  //     forks: 23
-  //   },
-  //   {
-  //     ...exampleRepository,
-  //     id: '3',
-  //     name: 'TypeScript Utils',
-  //     description: 'Common TypeScript utility functions',
-  //     lastUpdated: '2024-03-19',
-  //     status: 'active' as const,
-  //     alerts: { critical: 0, moderate: 1, low: 5 },
-  //     testCoverage: 98,
-  //     stars: 892,
-  //     forks: 124
-  //   },
-  //   {
-  //     ...exampleRepository,
-  //     id: '4',
-  //     name: 'Legacy API Service',
-  //     description: 'Deprecated API service pending migration',
-  //     lastUpdated: '2023-12-15',
-  //     status: 'archived' as const,
-  //     alerts: { critical: 12, moderate: 8, low: 15 },
-  //     testCoverage: 45,
-  //     stars: 12,
-  //     forks: 3
-  //   },
-  //   {
-  //     ...exampleRepository,
-  //     id: '5',
-  //     name: 'Authentication Module',
-  //     description: 'Core authentication and authorization service',
-  //     lastUpdated: '2024-03-22',
-  //     status: 'inactive' as const,
-  //     alerts: { critical: 7, moderate: 4, low: 2 },
-  //     testCoverage: 72,
-  //     language: 'Python',
-  //     stars: 234,
-  //     forks: 45
-  //   },
-  //   {
-  //     ...exampleRepository,
-  //     id: '6',
-  //     name: 'Mobile App',
-  //     description: 'React Native mobile application',
-  //     lastUpdated: '2024-03-18',
-  //     status: 'active' as const,
-  //     alerts: { critical: 2, moderate: 5, low: 8 },
-  //     testCoverage: 85,
-  //     language: 'JavaScript',
-  //     stars: 445,
-  //     forks: 67
-  //   },
-  //   {
-  //     ...exampleRepository,
-  //     id: '7',
-  //     name: 'Data Pipeline',
-  //     description: 'ETL pipeline for analytics',
-  //     lastUpdated: '2024-02-28',
-  //     status: 'inactive' as const,
-  //     alerts: { critical: 5, moderate: 9, low: 3 },
-  //     testCoverage: 63,
-  //     language: 'Python',
-  //     stars: 178,
-  //     forks: 34
-  //   },
-  //   {
-  //     ...exampleRepository,
-  //     id: '8',
-  //     name: 'UI Component Library',
-  //     description: 'Shared React component library',
-  //     lastUpdated: '2024-03-15',
-  //     status: 'active' as const,
-  //     alerts: { critical: 1, moderate: 3, low: 7 },
-  //     testCoverage: 89,
-  //     stars: 567,
-  //     forks: 89
-  //   }
-  // ];
+  const repositories = [
+    exampleRepository,
+    {
+      ...exampleRepository,
+      id: "2",
+      name: "Next.js Project",
+      description: "Company website built with Next.js",
+      lastUpdated: "2024-03-21",
+      status: "inactive" as const,
+      alerts: { critical: 4, moderate: 3, low: 2 },
+      testCoverage: 68,
+      stars: 156,
+      forks: 23,
+    },
+    {
+      ...exampleRepository,
+      id: "3",
+      name: "TypeScript Utils",
+      description: "Common TypeScript utility functions",
+      lastUpdated: "2024-03-19",
+      status: "active" as const,
+      alerts: { critical: 0, moderate: 1, low: 5 },
+      testCoverage: 98,
+      stars: 892,
+      forks: 124,
+    },
+    {
+      ...exampleRepository,
+      id: "4",
+      name: "Legacy API Service",
+      description: "Deprecated API service pending migration",
+      lastUpdated: "2023-12-15",
+      status: "archived" as const,
+      alerts: { critical: 12, moderate: 8, low: 15 },
+      testCoverage: 45,
+      stars: 12,
+      forks: 3,
+    },
+    {
+      ...exampleRepository,
+      id: "5",
+      name: "Authentication Module",
+      description: "Core authentication and authorization service",
+      lastUpdated: "2024-03-22",
+      status: "inactive" as const,
+      alerts: { critical: 7, moderate: 4, low: 2 },
+      testCoverage: 72,
+      language: "Python",
+      stars: 234,
+      forks: 45,
+    },
+    {
+      ...exampleRepository,
+      id: "6",
+      name: "Mobile App",
+      description: "React Native mobile application",
+      lastUpdated: "2024-03-18",
+      status: "active" as const,
+      alerts: { critical: 2, moderate: 5, low: 8 },
+      testCoverage: 85,
+      language: "JavaScript",
+      stars: 445,
+      forks: 67,
+    },
+    {
+      ...exampleRepository,
+      id: "7",
+      name: "Data Pipeline",
+      description: "ETL pipeline for analytics",
+      lastUpdated: "2024-02-28",
+      status: "inactive" as const,
+      alerts: { critical: 5, moderate: 9, low: 3 },
+      testCoverage: 63,
+      language: "Python",
+      stars: 178,
+      forks: 34,
+    },
+    {
+      ...exampleRepository,
+      id: "8",
+      name: "UI Component Library",
+      description: "Shared React component library",
+      lastUpdated: "2024-03-15",
+      status: "active" as const,
+      alerts: { critical: 1, moderate: 3, low: 7 },
+      testCoverage: 89,
+      stars: 567,
+      forks: 89,
+    },
+  ];
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 

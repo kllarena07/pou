@@ -32,7 +32,15 @@ export default function MainDash({
       <h1 className="text-3xl font-bold text-white mb-6">Dashboard</h1>
 
       {/* Repository Table Container */}
-      <div className="bg-[rgba(30,30,30,0.8)] backdrop-blur-[50px] rounded-[20px] p-6 mb-8 border border-gray-700/50">
+      <div className="relative bg-[rgba(30,30,30,0.8)] backdrop-blur-[50px] rounded-[20px] p-6 mb-8 border border-gray-700/50">
+        <div className="top-[-110px] right-[20px] absolute h-[110px] transition-all pt-12 duration-500 hover:pt-8 opacity-75 hover:filter-none overflow-hidden filter">
+          <Image
+            src="/pou-transparent-cropped.png"
+            width="110"
+            height="600"
+            alt="Pou is sad."
+          />
+        </div>
         <div className="w-full overflow-x-auto">
           <div className="flex justify-between items-center mb-4">
             <div className="flex space-x-4">
@@ -54,22 +62,6 @@ export default function MainDash({
               </tr>
             </thead>
             <tbody>
-              {repositories.length == 0 ? (
-                <div>
-                  <p className="text-right mt-5 text-gray-400">
-                    It looks like you haven&apos;t linked any repositories. Go
-                    ahead and link one!
-                  </p>
-                  <div className="h-[420px] transition-all pt-12 duration-500 hover:pt-[0px] hover:opacity-100 hover:filter-none overflow-hidden filter grayscale brightness-[0.35] opacity-50">
-                    <Image
-                      src="/pou-transparent.png"
-                      width="1000"
-                      height="600"
-                      alt="Pou is sad."
-                    />
-                  </div>
-                </div>
-              ) : undefined}
               {repositories.map((repo) => (
                 <tr
                   key={repo.id}
