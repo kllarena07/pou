@@ -1,10 +1,12 @@
 'use client';
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import GradientCanvas from "@/components/GradientCanvas";
+import MainDash from "@/components/MainDash";
 
 interface Item {
+  id: string;
   text: string;
   completed: boolean;
   date: string;
@@ -13,87 +15,102 @@ interface Item {
 
 export default function Home() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [criticalAlerts, setCriticalAlerts] = useState<Item[]>([]);
+  const [tasks, setTasks] = useState<Item[]>([]);
+  const [stats, setStats] = useState({
+    activeUsers: 0,
+    totalRepositories: 0,
+    subscriptionRate: 0
+  });
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
-  const [items1, setItems1] = useState<Item[]>([
-    { text: 'Alert #1', completed: false, date: '2025-02-08', status: 'Critical' },
-    { text: 'Alert #2', completed: false, date: '2025-02-07', status: 'Critical' },
-    { text: 'Alert #3', completed: false, date: '2025-02-06', status: 'Critical' },
-  ]);
+  // Simulate fetching data from an API
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // In a real application, these would be API calls
+        // Simulating API delay
+        await new Promise(resolve => setTimeout(resolve, 1000));
 
-  const [items2, setItems2] = useState<Item[]>([
-    { text: 'Refactor Code', completed: false, date: '2025-02-05', status: 'In Progress' },
-    { text: 'Write Documentation', completed: false, date: '2025-02-04', status: 'In Progress' },
-    { text: 'Test Application', completed: false, date: '2025-02-03', status: 'Pending' },
-  ]);
+        // Simulate critical alerts data
+        setCriticalAlerts([
+          { id: '1', text: 'Security Update Required', completed: false, date: new Date().toISOString().split('T')[0], status: 'Critical' },
+          { id: '2', text: 'Database Performance Issue', completed: false, date: new Date().toISOString().split('T')[0], status: 'Critical' },
+          { id: '3', text: 'Memory Leak Detected', completed: false, date: new Date().toISOString().split('T')[0], status: 'Critical' },
+        ]);
+
+        // Simulate tasks data
+        setTasks([
+          { id: '4', text: 'Update Dependencies', completed: false, date: new Date().toISOString().split('T')[0], status: 'In Progress' },
+          { id: '5', text: 'Code Review', completed: false, date: new Date().toISOString().split('T')[0], status: 'In Progress' },
+          { id: '6', text: 'Deploy Updates', completed: false, date: new Date().toISOString().split('T')[0], status: 'Pending' },
+        ]);
+
+        // Simulate stats data
+        setStats({
+          activeUsers: Math.floor(Math.random() * 100),
+          totalRepositories: Math.floor(Math.random() * 50),
+          subscriptionRate: Math.floor(Math.random() * 100)
+        });
+
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const handleToggleComplete = (itemId: string, type: 'alert' | 'task') => {
+    if (type === 'alert') {
+      setCriticalAlerts(prev => prev.map(item => 
+        item.id === itemId ? { ...item, completed: !item.completed } : item
+      ));
+    } else {
+      setTasks(prev => prev.map(item => 
+        item.id === itemId ? { ...item, completed: !item.completed } : item
+      ));
+    }
+  };
+
+  const handleDelete = (itemId: string, type: 'alert' | 'task') => {
+    if (type === 'alert') {
+      setCriticalAlerts(prev => prev.filter(item => item.id !== itemId));
+    } else {
+      setTasks(prev => prev.filter(item => item.id !== itemId));
+    }
+  };
+
+  // Add a simple theme object
+  const theme = {
+    gradientColor1: '#023601', // Deep forest green
+    gradientColor2: '#1b4332', // Dark forest green
+    gradientColor3: '#000000', // Black
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-white text-xl">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <>
-      <GradientCanvas />
-      <div className="min-h-screen flex flex-col items-center justify-center text-white space-y-4 overflow-auto">
-        {/* Box Container */}
-        <div
-          className={`p-4 w-full max-w-4xl rounded-lg flex-shrink transition-all duration-300 ease-in-out ${
-            sidebarOpen ? 'ml-[160px]' : 'ml-0' // Match sidebar width for shrinking behavior
-          }`}
-        >
-          {/* Box 1 */}
-          <div className="p-4 bg-gray-800 rounded-lg shadow-lg mb-4"> {/* Added margin-bottom for spacing */}
-            <h3 className="text-xl font-semibold mb-2">Repository: Learn React</h3>
-            <table className="w-full table-auto text-left">
-              <thead>
-                <tr>
-                  <th className="px-4 py-2">Alerts</th>
-                  <th className="px-4 py-2">Date</th>
-                  <th className="px-4 py-2">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {items1.map((item, i) => (
-                  <tr key={i} className="hover:bg-gray-700 cursor-pointer">
-                    <td className={`px-4 py-2 ${item.completed ? 'line-through text-gray-500' : ''}`}>
-                      {item.text}
-                    </td>
-                    <td className="px-4 py-2">{item.date}</td>
-                    <td className="px-4 py-2">{item.status}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Box 2 */}
-          <div className="p-4 bg-gray-800 rounded-lg shadow-lg mb-4"> {/* Added margin-bottom for spacing */}
-            <h3 className="text-xl font-semibold mb-2">Outdated Repositories</h3>
-            <table className="w-full table-auto text-left">
-              <thead>
-                <tr>
-                  <th className="px-4 py-2">Repository</th>
-                  <th className="px-4 py-2">Date</th>
-                  <th className="px-4 py-2">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {items2.map((item, i) => (
-                  <tr key={i} className="hover:bg-gray-700 cursor-pointer">
-                    <td className={`px-4 py-2 ${item.completed ? 'line-through text-gray-500' : ''}`}>
-                      {item.text}
-                    </td>
-                    <td className="px-4 py-2">{item.date}</td>
-                    <td className="px-4 py-2">{item.status}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex min-h-screen">
+      <GradientCanvas 
+        gradientColor1={theme.gradientColor1}
+        gradientColor2={theme.gradientColor2}
+        gradientColor3={theme.gradientColor3}
+      />
+      <div className="min-h-screen flex">
         {/* Sidebar */}
         <aside
-          className={`fixed left-0 top-0 h-full bg-black text-white p-4 transform transition-transform duration-300 ${
+          className={`fixed left-0 top-0 h-full bg-[rgba(30,30,30,0.8)] backdrop-blur-[50px] text-white p-4 transform transition-transform duration-300 border border-gray-700/50 rounded-r-[20px] ${
             sidebarOpen ? "translate-x-0" : "-translate-x-full"
           } sm:w-40`}
           style={{ fontFamily: '-apple-system, BlinkMacSystemFont, system-ui, sans-serif' }}
@@ -118,7 +135,13 @@ export default function Home() {
           </ul>
         </aside>
 
-        {/* Toggle Button (Bottom Left) */}
+        <MainDash 
+          sidebarOpen={sidebarOpen}
+          criticalAlerts={criticalAlerts}
+          tasks={tasks}
+        />
+
+        {/* Toggle Button */}
         <button
           onClick={toggleSidebar}
           className="fixed bottom-4 left-4 bg-gray-800 text-white px-3 py-2 rounded-md shadow-lg transition-transform duration-300"
