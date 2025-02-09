@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 
 import 'rsuite/dist/rsuite.min.css';
@@ -8,6 +8,10 @@ import { BsCheckCircleFill } from 'react-icons/bs';
 import { IoEnterOutline } from 'react-icons/io5';
 import { useState, useEffect } from 'react';
 import { AiOutlineEnter } from "react-icons/ai";
+import "rsuite/dist/rsuite.min.css";
+import { Repository } from "../models/Repository";
+import Image from "next/image";
+
 
 interface Item {
   id: string;
@@ -22,6 +26,7 @@ interface MainDashProps {
   repositories: Repository[];
   tasks: Item[];
 }
+
 
 enum ProcessState {
   Reading = 'Reading',
@@ -393,20 +398,30 @@ export default function MainDash({ sidebarOpen, repositories, tasks }: MainDashP
       )}
 
       {/* Repository Table Container */}
-      <div className="bg-[rgba(30,30,30,0.8)] backdrop-blur-[50px] rounded-[20px] p-6 mb-8 border border-gray-700/50">
+      <div className="relative bg-[rgba(30,30,30,0.8)] backdrop-blur-[50px] rounded-[20px] p-6 mb-8 border border-gray-700/50">
+        <div className="top-[-110px] right-[20px] absolute h-[110px] transition-all pt-12 duration-500 hover:pt-8 opacity-75 hover:filter-none overflow-hidden filter">
+          <Image
+            src="/pou-transparent-cropped.png"
+            width="110"
+            height="600"
+            alt="Pou is sad."
+          />
+        </div>
         <div className="w-full overflow-x-auto">
           <div className="flex justify-between items-center mb-4">
             <div className="flex space-x-4">
               <h2 className="text-xl text-white">Repositories</h2>
             </div>
           </div>
-          
+
           <table className="w-full">
             <thead>
               <tr className="text-gray-400 border-b border-gray-700">
                 <th className="px-4 py-3 text-left font-medium">SELECT</th>
                 <th className="px-4 py-3 text-left font-medium">NAME</th>
-                <th className="px-4 py-3 text-left font-medium">LAST UPDATED</th>
+                <th className="px-4 py-3 text-left font-medium">
+                  LAST UPDATED
+                </th>
                 <th className="px-4 py-3 text-left font-medium">STATUS</th>
                 <th className="px-4 py-3 text-left font-medium">ALERTS</th>
                 <th className="px-4 py-3 text-left font-medium">ACTIONS</th>
@@ -414,18 +429,30 @@ export default function MainDash({ sidebarOpen, repositories, tasks }: MainDashP
             </thead>
             <tbody>
               {repositories.map((repo) => (
-                <tr key={repo.id} className="border-b border-gray-700/50 hover:bg-gray-800/50">
+                <tr
+                  key={repo.id}
+                  className="border-b border-gray-700/50 hover:bg-gray-800/50"
+                >
                   <td className="px-4 py-4">
-                    <input type="checkbox" className="rounded bg-gray-700/50 border-gray-600" />
+                    <input
+                      type="checkbox"
+                      className="rounded bg-gray-700/50 border-gray-600"
+                    />
                   </td>
                   <td className="px-4 py-4 text-white">{repo.name}</td>
                   <td className="px-4 py-4 text-white">{repo.lastUpdated}</td>
                   <td className="px-4 py-4 text-white">{repo.status}</td>
-                  <td className="px-4 py-4 text-white">{repo.alerts.critical}</td>
+                  <td className="px-4 py-4 text-white">
+                    {repo.alerts.critical}
+                  </td>
                   <td className="px-4 py-4">
                     <div className="flex space-x-2">
-                      <button className="px-4 py-1.5 bg-gray-800/80 hover:bg-gray-700/80 rounded text-sm">Edit</button>
-                      <button className="px-4 py-1.5 bg-gray-800/80 hover:bg-gray-700/80 rounded text-sm">Delete</button>
+                      <button className="px-4 py-1.5 bg-gray-800/80 hover:bg-gray-700/80 rounded text-sm">
+                        Edit
+                      </button>
+                      <button className="px-4 py-1.5 bg-gray-800/80 hover:bg-gray-700/80 rounded text-sm">
+                        Delete
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -456,7 +483,10 @@ export default function MainDash({ sidebarOpen, repositories, tasks }: MainDashP
             </thead>
             <tbody>
               {tasks.map((item, i) => (
-                <tr key={i} className="border-t border-gray-700 hover:bg-gray-700/50">
+                <tr
+                  key={i}
+                  className="border-t border-gray-700 hover:bg-gray-700/50"
+                >
                   <td className="px-4 py-3">
                     <input type="checkbox" className="rounded bg-gray-700" />
                   </td>
@@ -465,8 +495,12 @@ export default function MainDash({ sidebarOpen, repositories, tasks }: MainDashP
                   <td className="px-4 py-3 text-white">{item.status}</td>
                   <td className="px-4 py-3">
                     <div className="flex space-x-2">
-                      <button className="px-3 py-1 bg-gray-700 rounded text-sm">Edit</button>
-                      <button className="px-3 py-1 bg-gray-700 rounded text-sm">Delete</button>
+                      <button className="px-3 py-1 bg-gray-700 rounded text-sm">
+                        Edit
+                      </button>
+                      <button className="px-3 py-1 bg-gray-700 rounded text-sm">
+                        Delete
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -484,21 +518,24 @@ export default function MainDash({ sidebarOpen, repositories, tasks }: MainDashP
         </div>
         <div className="bg-[rgba(30,30,30,0.8)] backdrop-blur-[50px] rounded-[20px] p-6 border border-gray-700/50 relative">
           <div className="flex items-center gap-3">
-            <svg 
-              width="24" 
-              height="24" 
-              viewBox="0 0 24 24" 
-              fill="none" 
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
               className="text-red-500"
-              stroke="currentColor" 
-              strokeWidth="2" 
-              strokeLinecap="round" 
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
               strokeLinejoin="round"
             >
               <path d="M12 8v4m0 4h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
             </svg>
             <div className="text-6xl font-bold text-white mb-2">
-              {repositories.reduce((total, repo) => total + repo.alerts.critical, 0)}
+              {repositories.reduce(
+                (total, repo) => total + repo.alerts.critical,
+                0
+              )}
             </div>
           </div>
           <div className="text-gray-400">Critical Alerts</div>
@@ -510,4 +547,4 @@ export default function MainDash({ sidebarOpen, repositories, tasks }: MainDashP
       </div>
     </div>
   );
-} 
+}
