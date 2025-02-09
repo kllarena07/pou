@@ -38,7 +38,7 @@ def process_file(job):
   try:
       print("Trying...")
       job_report = client.chat.completions.create(
-          model="llama3-8b-8192",
+          model="llama-3.1-8b-instant",
           messages=[{"role": "system", "content": "You are a helpful assistant that analyzes code and returns a JSON object with the refactored code and the comments that come with it. Your goal is to identify outdated syntax in code and suggest changes to update it to the latest syntax."}, {"role": "user", "content": user_prompt}],
           response_model=JobReport,
       )

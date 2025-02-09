@@ -1,4 +1,4 @@
 __pycache__
 .env
 modal-test.py
-staging/*
+staging
