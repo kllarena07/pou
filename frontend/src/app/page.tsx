@@ -20,7 +20,6 @@ interface Item {
 export default function Home() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [criticalAlerts, setCriticalAlerts] = useState<Item[]>([]);
   const [tasks, setTasks] = useState<Item[]>([]);
   const [stats, setStats] = useState({
     activeUsers: 0,
@@ -30,7 +29,7 @@ export default function Home() {
   const [currentPage, setCurrentPage] = useState('dashboard');
 
   // Add more diverse sample repositories data
-  const [repositories, setRepositories] = useState<Repository[]>([
+  const repositories = [
     exampleRepository,
     {
       ...exampleRepository,
@@ -119,7 +118,7 @@ export default function Home() {
       stars: 567,
       forks: 89
     }
-  ]);
+  ];
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
@@ -130,13 +129,6 @@ export default function Home() {
         // In a real application, these would be API calls
         // Simulating API delay
         await new Promise(resolve => setTimeout(resolve, 1000));
-
-        // Simulate critical alerts data
-        setCriticalAlerts([
-          { id: '1', text: 'Security Update Required', completed: false, date: new Date().toISOString().split('T')[0], status: 'Critical' },
-          { id: '2', text: 'Database Performance Issue', completed: false, date: new Date().toISOString().split('T')[0], status: 'Critical' },
-          { id: '3', text: 'Memory Leak Detected', completed: false, date: new Date().toISOString().split('T')[0], status: 'Critical' },
-        ]);
 
         // Simulate tasks data
         setTasks([
@@ -162,25 +154,9 @@ export default function Home() {
     fetchData();
   }, []);
 
-  const handleToggleComplete = (itemId: string, type: 'alert' | 'task') => {
-    if (type === 'alert') {
-      setCriticalAlerts(prev => prev.map(item => 
-        item.id === itemId ? { ...item, completed: !item.completed } : item
-      ));
-    } else {
-      setTasks(prev => prev.map(item => 
-        item.id === itemId ? { ...item, completed: !item.completed } : item
-      ));
-    }
-  };
+  
 
-  const handleDelete = (itemId: string, type: 'alert' | 'task') => {
-    if (type === 'alert') {
-      setCriticalAlerts(prev => prev.filter(item => item.id !== itemId));
-    } else {
-      setTasks(prev => prev.filter(item => item.id !== itemId));
-    }
-  };
+  
 
   // Add a simple theme object
   const theme = {
