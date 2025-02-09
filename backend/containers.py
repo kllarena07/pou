@@ -3,13 +3,19 @@ import modal
 import subprocess
 from checker import fetch_updates
 from checker import CodeChange
+import asyncio
+import websockets
+import json
+from dotenv import load_dotenv
 
-image = modal.Image.debian_slim(python_version="3.10").apt_install("git", "python3", "bash").pip_install("python-dotenv", "groq", "fastapi", "uvicorn", "modal", "instructor", "pydantic").add_local_python_source("checker")
+load_dotenv()
+
+image = modal.Image.debian_slim(python_version="3.10").apt_install("git", "python3", "bash").pip_install("python-dotenv", "groq", "fastapi", "uvicorn", "modal", "instructor", "pydantic", "websockets", "supabase").add_local_python_source("checker")
 modalApp = modal.App(name="groq-read", image=image)
 
 # Define the Docker image with necessary dependencies
 
-@modalApp.function(secrets=[modal.Secret.from_name("GROQ_API_KEY")])
+@modalApp.function(secrets=[modal.Secret.from_name("GROQ_API_KEY"), modal.Secret.from_name("SUPABASE_URL"), modal.Secret.from_name("SUPABASE_KEY")])
 def run_script(repo_url: str) -> list[CodeChange]:
     """
     Clones the given repository, runs `init.sh`, and returns combined logs.
@@ -43,6 +49,8 @@ def run_script(repo_url: str) -> list[CodeChange]:
     ).stdout
 
     data = fetch_updates(os.getcwd() + "/repository")
+
+
 
 
     return [change.model_dump(mode="json") for change in data]  # Ensure CodeChange is serializable

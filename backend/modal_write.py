@@ -1,11 +1,17 @@
 import modal
 import checker
 import containers
-
-image = modal.Image.debian_slim(python_version="3.10").apt_install("git", "python3", "bash").pip_install("python-dotenv", "groq", "fastapi", "uvicorn", "modal", "instructor", "pydantic").add_local_python_source("checker").add_local_python_source("containers")
+from dotenv import load_dotenv
+import os
+import supabase
+image = modal.Image.debian_slim(python_version="3.10").apt_install("git", "python3", "bash").pip_install("python-dotenv", "groq", "fastapi", "uvicorn", "modal", "instructor", "pydantic", "websockets", "supabase").add_local_python_source("checker").add_local_python_source("containers")
 writeApp = modal.App(name="groq-write", image=image)
 
-@writeApp.function(secrets=[modal.Secret.from_name("GROQ_API_KEY")])
+load_dotenv()
+
+supabase = supabase.create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_KEY"))
+
+@writeApp.function(secrets=[modal.Secret.from_name("GROQ_API_KEY"), modal.Secret.from_name("SUPABASE_URL"), modal.Secret.from_name("SUPABASE_KEY")])
 def process_file(job):
   from groq import Groq
   from pydantic import BaseModel, ValidationError
@@ -42,6 +48,14 @@ def process_file(job):
           messages=[{"role": "system", "content": "You are a helpful assistant that analyzes code and returns a JSON object with the refactored code and the comments that come with it. Your goal is to identify outdated syntax in code and suggest changes to update it to the latest syntax."}, {"role": "user", "content": user_prompt}],
           response_model=JobReport,
       )
+
+      data = {
+          "status": "WRITING",
+          "message": "Updating " + file_path.split("/")[-1] + "...",
+          "code": job_report.refactored_code
+      }
+
+      supabase.table("repo-updates").insert(data).execute()
 
       return {
           "file_path": file_path,

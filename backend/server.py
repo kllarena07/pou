@@ -1,4 +1,5 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
+from typing import Optional
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import docker
@@ -9,12 +10,15 @@ import subprocess
 from containers import modalApp, run_script
 from modal_write import writeApp, process_file
 from git_driver import load_repository, create_and_push_branch, create_pull_request
-
+from socket_manager import ConnectionManager
+import asyncio
+import websockets
+import json
 load_dotenv()
 
 app = FastAPI()
 
-
+manager = ConnectionManager()
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
@@ -27,12 +31,26 @@ app.add_middleware(
 # Define request model
 class UpdateRequest(BaseModel):
     repository: str
+    repository_owner: str
+    repository_name: str
 
 @app.post('/update')
 async def update(request: UpdateRequest):
     try:
         with modalApp.run():
             job_list = run_script.remote(request.repository)
+
+        async def update_ws():
+          uri = "wss://localhost:5000/ws?client_id=1"
+          print("updating ws")
+          async with websockets.connect(uri) as websocket:
+              # Now `websocket` is connected
+              await websocket.send(json.dumps(job_list))
+              response = await websocket.recv()
+              print(response)
+
+          asyncio.run(update_ws())
+ 
 
         with writeApp.run():
             refactored_jobs = []
@@ -86,6 +104,17 @@ async def update(request: UpdateRequest):
         raise HTTPException(status_code=500, detail=f"Docker error: {str(de)}")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket, client_id: Optional[str] = None):
+  await manager.connect(websocket, client_id)
+  try:
+    while True:
+      data = await websocket.receive_json()
+      await manager.broadcast(data)
+  except WebSocketDisconnect:
+    manager.disconnect(client_id)
+
 
 if __name__ == '__main__':
     import uvicorn

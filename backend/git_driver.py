@@ -3,15 +3,25 @@ import uuid
 import requests
 from os import getenv
 from dotenv import load_dotenv
+import os
+import supabase
 
 load_dotenv()
+
+supabase = supabase.create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_KEY"))
 
 def load_repository(repo_path="./staging"):
   repo = Repo(repo_path)
   origin = repo.remotes.origin
   # Modified $SELECTION_PLACEHOLDER$ code:
+  data={
+    "status": "LOADING",
+    "message": "Loading repository..."
+  }
+  supabase.table("repo-updates").insert(data).execute()
   origin_url = origin.url
   return repo, origin, origin_url
+
 
 
 def create_and_push_branch(repo, origin, files_to_stage):
@@ -25,6 +35,12 @@ def create_and_push_branch(repo, origin, files_to_stage):
   print("Staged files:", files_to_stage)
 
   repo.index.commit("Automated commit message.")
+
+  data={
+    "status": "LOADING",
+    "message": "Creating branches..."
+  }
+  supabase.table("repo-updates").insert(data).execute()
 
   origin.push(new_branch)
   print("Pushed branch to remote.")
