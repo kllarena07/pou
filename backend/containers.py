@@ -19,7 +19,7 @@ test_image = (
 )
 
 @modalApp.function(secrets=[modal.Secret.from_name("dependepou")], image=test_image)
-def run_script() -> str:
+def run_script(repo_url: str) -> str:
     """
     Clones the given repository, runs `init.sh`, and returns combined logs.
     """
@@ -27,14 +27,30 @@ def run_script() -> str:
     os.environ.update(env_vars)
 
     outputs = []
-    result = subprocess.run(
+    outputs.append(subprocess.run(
         ["git", "clone", "https://github.com/kllarena07/pou-test.git", "scripts"],
         check=True,
         capture_output=True,
         text=True
-    )
-    outputs.append(result.stdout)
-    os.chdir("scripts")
+    ).stdout)
+
+
+    result = os.chdir("scripts")
+    outputs.append(subprocess.run(
+        ["git", "clone", repo_url, "repository"],
+        check=True,
+        capture_output=True,
+        text=True
+    ).stdout)
+
+    # outputs.append(os.getcwd())
+    outputs.append(subprocess.run(
+        ["ls", "repository"],
+        check=True,
+        capture_output=True,
+        text=True
+    ).stdout)
+
     os.chmod("./init.sh", 0o755)
     result = subprocess.run(
         ["./init.sh"],
@@ -42,13 +58,15 @@ def run_script() -> str:
         capture_output=True,
         text=True
     )
+    outputs.append(result.stderr)
     outputs.append(result.stdout)
-    # Commands to execute
-    commands = [
-        "cd scripts",
-        "ls",
-        "chmod +x ./scripts/init.sh",
-        "bash -c 'source ./scripts/init.sh'"
-    ]
+
+
+    # outputs.append(subprocess.run(
+    #     ["ls"],
+    #     check=True,
+    #     capture_output=True,
+    #     text=True
+    # ).stdout)
 
     return "\n".join(outputs)
