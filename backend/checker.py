@@ -5,12 +5,14 @@ from dotenv import load_dotenv
 from pydantic import BaseModel, ValidationError
 import json
 import instructor
+import supabase
+
 
 load_dotenv()  # Loads your GROQ_API_KEY from .env file
 
-
 client = instructor.from_groq(Groq(api_key=os.getenv("GROQ_API_KEY")), mode=instructor.Mode.JSON)
 
+supabase = supabase.create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_KEY"))
 
 class CodeChange(BaseModel):
     path: str
@@ -62,12 +64,17 @@ def analyze_file_with_llm(file_path):
             ],
             response_model=CodeChange,
         )
-        # llm_response = chat_completion.choices[0].message.content
-        
-        # Convert the LLM response to a dictionary before creating the CodeChange instance
-        # code_change_data = json.loads(chat_completion)
-        # code_change = CodeChange(**code_change_data)  # This should work now
+
         print(chat_completion)
+
+        data = {
+            "status": "READING",
+            "message": "Updating " + file_path.split("/")[-1] + "...",
+            "code": chat_completion.code_content
+        }
+
+        supabase.table("repo-updates").insert(data).execute()
+        
         return chat_completion
     except (ValidationError, json.JSONDecodeError) as parse_error:
         print(f"Error parsing LLM response for {file_path}: {parse_error}")
@@ -107,6 +114,7 @@ def fetch_updates(directory):
 def main():
     # print(fetch_updates("website-test")[0])
     print(fetch_updates("website-test"))
+
     # parser = argparse.ArgumentParser(description="Analyze code files for outdated syntax.")
     # parser.add_argument("directory", type=str, help="Directory to analyze")
 

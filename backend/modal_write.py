@@ -1,11 +1,13 @@
 import modal
 import checker
 import containers
-
-image = modal.Image.debian_slim(python_version="3.10").apt_install("git", "python3", "bash").pip_install("python-dotenv", "groq", "fastapi", "uvicorn", "modal", "instructor", "pydantic").add_local_python_source("checker").add_local_python_source("containers")
+from dotenv import load_dotenv
+image = modal.Image.debian_slim(python_version="3.10").apt_install("git", "python3", "bash").pip_install("python-dotenv", "groq", "fastapi", "uvicorn", "modal", "instructor", "pydantic", "websockets", "supabase").add_local_python_source("checker").add_local_python_source("containers")
 writeApp = modal.App(name="groq-write", image=image)
 
-@writeApp.function(secrets=[modal.Secret.from_name("GROQ_API_KEY")])
+load_dotenv()
+
+@writeApp.function(secrets=[modal.Secret.from_name("GROQ_API_KEY"), modal.Secret.from_name("SUPABASE_URL"), modal.Secret.from_name("SUPABASE_KEY")])
 def process_file(job):
   from groq import Groq
   from pydantic import BaseModel, ValidationError
